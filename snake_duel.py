@@ -11,9 +11,6 @@ Map:
 Snake
 
 
-
-
-
 description : 
 
 dans un premier temps affichage dans le terminal 
@@ -28,7 +25,7 @@ ajout du mode coop meme jeux mais avec 2 serpents chacun controlés par un joueu
 
 faire affichage graphgique 
 """
-
+#couple : (y , x)
 UP = (-1, 0)
 DOWN = (1, 0)
 LEFT = (0, -1)
@@ -47,15 +44,21 @@ class Snake:
         self.symbol = symbol
         self.direction = direction
         self.alive = True
-        
+
     def move(self):
-        pass
+        head_y, head_x = self.body[-1]
+        dy, dx = self.direction
+        new_head = (head_y + dy, head_x + dx)
+        self.body.append(new_head)
+        return new_head
     
-    
-    def cahnge_direction(self):
-        pass
+    def change_direction(self, new_direction):
+        #Empêcher d'aller en arrière directement
+        if ( new_direction[0] != -self.direction[0] or new_direction[1] != -self.direction[1] ):
+            self.direction = new_direction
     
     def dead(self):
+        """Fait mourir le serpent"""
         self.alive = False
     
     
@@ -73,19 +76,51 @@ class Map :
                 self.grid[y][x] = snake.symbol
     
     
-    def is_empty(self):
-        pass
+    def is_empty(self, position):
+        """
+        renvoie un bouléan en fonction de si la case est vide ou non 
+        """
+        y , x = position
+        return self.grid[y][x] == ' ' 
     
-    def is_inside(self):
-        pass
-    
+    def is_inside(self, position):
+        """renvoie un bouléan en fonciton de : es ce que la position est bien dans la range du tableau"""
+        y , x = position
+        
+        
+        if  0 <= y < self.height and 0 <= x < self.width :
+            return True
+        return False   
+
     def update(self):
-        pass
+        """faire déplacer tout les serpant en vérifiant qu'ils soit en vie . 
+            a la suite de ce déplacement regarder si le serpent est mtn mort ( mort si en dehors de la map ou sur une case non vide)
+            et s'il n'est pas mort alors le déplacer dans la grille"""
     
     def display(self):
+        """Faire l'affichage dans le terminal de la grille"""
         pass
     
     def all_alive(self):
-        pass
+        for snake in self.snakes:
+            if not snake.alive :
+                return False   
+                
+        return True
+
+
+def get_touche():
+    pass
+
+
+def main():
+    pass
+
+
+
+
+
+if __name__ == "__main__" :
+    main()
     
     
