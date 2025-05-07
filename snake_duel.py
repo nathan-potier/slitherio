@@ -1,3 +1,15 @@
+import os
+import time
+import threading
+import random
+import sys
+
+try :
+    import msvcrt #que pour windows
+except :
+    import tty
+    import termios
+
 
 
 
@@ -29,10 +41,10 @@ faire affichage graphgique
 UP = (-1, 0)
 DOWN = (1, 0)
 LEFT = (0, -1)
-RGIHT = (0, 1)
+RIGHT = (0, 1)
 
 DIRECTION_KEYS = {
-    'z' : UP, 's' : DOWN, 'q' : LEFT, 'd': RGIHT
+    'z' : UP, 's' : DOWN, 'q' : LEFT, 'd': RIGHT
 }
 
 
@@ -54,7 +66,9 @@ class Snake:
     
     def change_direction(self, new_direction):
         #Empêcher d'aller en arrière directement
-        if ( new_direction[0] != -self.direction[0] or new_direction[1] != -self.direction[1] ):
+        
+
+        if ( new_direction[0] != -(self.direction[0]) or new_direction[1] != -(self.direction[1]) ):
             self.direction = new_direction
     
     def dead(self):
@@ -65,7 +79,7 @@ class Snake:
 class Map :
     
     
-    def __init__(self, height:int, width:int, snakes:Snake):
+    def __init__(self, height:int, width:int, snakes:list[Snake]):
         self.height = height
         self.width = width
         self.grid = [[' ' for _ in range(width)] for _ in range(height)]
@@ -96,11 +110,27 @@ class Map :
         """faire déplacer tout les serpant en vérifiant qu'ils soit en vie . 
             a la suite de ce déplacement regarder si le serpent est mtn mort ( mort si en dehors de la map ou sur une case non vide)
             et s'il n'est pas mort alors le déplacer dans la grille"""
+        
+        for snake in self.snakes :
+            if not snake.alive :
+                continue
+            
+            new_head = snake.move()
+            if not self.is_inside(new_head) or not self.is_empty(new_head) : 
+                snake.alive = False
+            else:
+                y, x = new_head
+                self.grid[y][x] = snake.symbol
+
     
     def display(self):
         """Faire l'affichage dans le terminal de la grille"""
-        pass
-    
+        
+        print("+" + "-" * self.width + "+")
+        for row in self.grid :
+            print("|" + "".join(row) + "|")      
+        print("+" + "-" * self.width + "+")
+
     def all_alive(self):
         for snake in self.snakes:
             if not snake.alive :
@@ -114,13 +144,44 @@ def get_touche():
 
 
 def main():
-    pass
+    height, width = 15, 30
+    mode = input("Mode (1 = solo, 2 = coop):")
+    
+    snakes = []
+    
+    if mode == "2" :
+        s1 = Snake((5, 5),  "1", RIGHT)
+        s2 = Snake((10, 10),  "2", LEFT)
+        snakes = [s1, s2]
+    else:
+        s1 = Snake((7, 15), "1",  RIGHT)
+        snakes = [s1]
 
 
-
-
-
+    game_map = Map(height, width, snakes)
+    
+    
+    #start l'écoute des touches 
+    
+    
+    while(game_map.all_alive()):
+        dir = input()
+        
+        pos = DIRECTION_KEYS[dir]
+        s1.change_direction(pos)
+                     
+        game_map.update()
+        game_map.display()
+        time.sleep(0.2)
+    
+    
+    
+    print("Game Over!!!!")
+    
+    
 if __name__ == "__main__" :
     main()
-    
-    
+
+
+
+
