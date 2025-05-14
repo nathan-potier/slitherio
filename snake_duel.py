@@ -1,17 +1,23 @@
-import os
+
 import time
 import threading
 import random
-import sys
+import pygame
+import tkinter as tk
+#form pygame import *
+
 
 try :
     import msvcrt #que pour windows
+    WINDOWS = True
 except :
     import tty
     import termios
+    WINDOWS = False
 
-
-
+root = tk.Tk()
+root.attributes()
+root.withdraw()
 
 """
 class : 
@@ -43,8 +49,12 @@ DOWN = (1, 0)
 LEFT = (0, -1)
 RIGHT = (0, 1)
 
+CELL_SIZE = 20
+FPS = 5
+
 DIRECTION_KEYS = {
-    'z' : UP, 's' : DOWN, 'q' : LEFT, 'd': RIGHT
+    pygame.K_z : UP, pygame.K_s : DOWN, pygame.K_q : LEFT, pygame.K_d: RIGHT,
+    pygame.K_i : UP, pygame.K_k : DOWN, pygame.K_j : LEFT, pygame.K_l: RIGHT
 }
 
 
@@ -137,13 +147,51 @@ class Map :
                 return False   
                 
         return True
+    
+"""
+def get_key():
+    if WINDOWS :
+        return msvcrt.getch().decode("utf-8").lower()
+        
+        
+        
+    else:
+        pass #Faire la detection des touches pour linux 
 
 
-def get_touche():
-    pass
+
+def listen_key(snakes, stop_event):
+    while not stop_event.is_set():
+        key = get_key() # récup la touche pressée
+        if key in DIRECTION_KEYS : #vérifie que la touche est dans le dict des direction possible donc ' zqsd '
+            direction = DIRECTION_KEYS[key]
+            
+            if  key in "zqsd":
+                snakes[0].change_direction(direction)
+                
+            elif len(snakes) > 1 and key in "ijkl":
+                snakes[1].change_direction(direction)
+"""
+
+
+def draw_grid(screen, game_map):
+    screen.fill((255,255,255))
+    for y in range(game_map.height):
+        for x in range(game_map.width):
+            cell = game_map.grid[y][x]
+            color = (255,255,255)
+            if cell == '1':
+                color = (0,255,0) #Vert
+            elif cell == '2' :
+                color = (0,0,255) #Bleu
+            
+            pygame.draw.rect(screen,color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            #pygame.draw.rect()
 
 
 def main():
+    pygame.init()
+    
     height, width = 15, 30
     mode = input("Mode (1 = solo, 2 = coop):")
     
@@ -161,27 +209,36 @@ def main():
     game_map = Map(height, width, snakes)
     
     
-    #start l'écoute des touches 
+    screen = pygame.display.set_mode((width * CELL_SIZE, height * CELL_SIZE))
+    clock = pygame.time.Clock()
     
-    
-    while(game_map.all_alive()):
-        dir = input()
+    running = True
+    while(running and game_map.all_alive()):
         
-        pos = DIRECTION_KEYS[dir]
-        s1.change_direction(pos)
-                     
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT :
+                running = False
+            elif event.type == pygame.KEYDOWN:
+  
+                if event.key in DIRECTION_KEYS:
+
+                    direction = DIRECTION_KEYS[event.key]
+                    if event.key in [pygame.K_z , pygame.K_s , pygame.K_q , pygame.K_d] :
+                        snakes[0].change_direction(direction)
+                    elif len(snakes) > 1 and event.key in [pygame.K_i , pygame.K_k , pygame.K_j , pygame.K_l] :
+                        snakes[1].change_direction(direction) 
+                    
+                    
         game_map.update()
-        game_map.display()
-        time.sleep(0.2)
-    
-    
+        draw_grid(screen, game_map)
+        pygame.display.flip()
+        clock.tick(FPS)
+        
+        
     
     print("Game Over!!!!")
-    
+    pygame.quit()
     
 if __name__ == "__main__" :
     main()
-
-
-
 
